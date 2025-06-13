@@ -11,26 +11,28 @@ const Dashboard = () => {
     const fetchUserProfile = async () => {
       try {
         const response = await authAPI.getProfile();
-        setUser (response.data);
+        setUser(response.data);
       } catch (error) {
         setError('Failed to fetch user profile');
+        setLoading(false);
       }
     };
+    fetchUserProfile();
+  }, []);
 
+  useEffect(() => {
     const fetchUserEvents = async () => {
+      if (!user) return;
       try {
-        const response = await eventAPI.getEvents({ createdBy: user?._id });
+        const response = await eventAPI.getEvents({ createdBy: user._id });
         setEvents(response.data);
       } catch (error) {
         setError('Failed to fetch user events');
+      } finally {
+        setLoading(false);
       }
     };
-
-    fetchUserProfile();
-    if (user) {
-      fetchUserEvents();
-    }
-    setLoading(false);
+    fetchUserEvents();
   }, [user]);
 
   if (loading) {
