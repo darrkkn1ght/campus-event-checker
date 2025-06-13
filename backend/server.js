@@ -21,7 +21,9 @@ const app = express();
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
     'http://192.168.234.235:3000',
+    'http://192.168.234.235:3001',
     'https://campus-event-checker-1.onrender.com'
   ],
   credentials: true
