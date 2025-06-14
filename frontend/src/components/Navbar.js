@@ -128,6 +128,18 @@ const Navbar = () => {
                     <div className="py-1">
                       <Menu.Item>
                         {({ active }) => (
+                          <Link
+                            to="/profile"
+                            className={`$ {
+                              active ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                            } flex items-center w-full px-4 py-2 text-sm gap-2`}
+                          >
+                            <UserCircleIcon className="h-5 w-5" /> Profile
+                          </Link>
+                        )}
+                      </Menu.Item>
+                      <Menu.Item>
+                        {({ active }) => (
                           <button
                             onClick={handleLogout}
                             className={`$ {

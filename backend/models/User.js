@@ -33,6 +33,22 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  notificationPreferences: {
+    eventReminders: { type: Boolean, default: true },
+    newEvents: { type: Boolean, default: true },
+    rsvpConfirmations: { type: Boolean, default: true }
+  },
+  themePreference: {
+    type: String,
+    enum: ['light', 'dark', 'system'],
+    default: 'system'
+  },
+  privacy: {
+    profilePublic: { type: Boolean, default: true },
+    eventsPublic: { type: Boolean, default: true },
+    hideEmail: { type: Boolean, default: false },
+    hideAvatar: { type: Boolean, default: false }
   }
 });
 

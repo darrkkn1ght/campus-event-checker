@@ -63,6 +63,24 @@ const createEvent = async (req, res) => {
     await event.save();
     await event.populate('createdBy', 'name email');
 
+    // Send notification emails to users who want new event notifications
+    try {
+      const User = require('../models/User');
+      const { sendMail } = require('../utils/mailer');
+      const usersToNotify = await User.find({ 'notificationPreferences.newEvents': true });
+      const emailPromises = usersToNotify.map(user =>
+        sendMail({
+          to: user.email,
+          subject: `New Event: ${event.title}`,
+          text: `A new event has been posted: ${event.title}\n\n${event.description}\n\nLocation: ${event.location}\nDate: ${event.date}\nTime: ${event.time}`,
+          html: `<h2>New Event: ${event.title}</h2><p>${event.description}</p><p><b>Location:</b> ${event.location}<br/><b>Date:</b> ${event.date}<br/><b>Time:</b> ${event.time}</p>`
+        })
+      );
+      await Promise.all(emailPromises);
+    } catch (notifyErr) {
+      console.error('Failed to send event notification emails:', notifyErr);
+    }
+
     res.status(201).json(event);
   } catch (error) {
     console.error(error);

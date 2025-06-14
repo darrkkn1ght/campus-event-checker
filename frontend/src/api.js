@@ -32,6 +32,14 @@ export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
   getProfile: () => api.get('/users/me'),
+  updateProfile: (data) => api.patch('/users/me', data),
+  changePassword: (data) => api.patch('/users/me/password', data),
+  getNotificationPreferences: () => api.get('/users/me/notifications'),
+  updateNotificationPreferences: (data) => api.patch('/users/me/notifications', data),
+  getThemePreference: () => api.get('/users/me/theme'),
+  updateThemePreference: (data) => api.patch('/users/me/theme', data),
+  getPrivacySettings: () => api.get('/users/me/privacy'),
+  updatePrivacySettings: (data) => api.patch('/users/me/privacy', data),
 };
 
 export const eventAPI = {

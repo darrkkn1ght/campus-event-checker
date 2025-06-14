@@ -113,6 +113,8 @@ const Register = () => {
                 <LockClosedIcon className="absolute left-3 top-2.5 h-5 w-5 text-blue-300" />
                 <input
                   type="password"
+                  
+                  
                   id="password"
                   {...formRegister('password', { required: 'Password is required' })}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
