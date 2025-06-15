@@ -1,47 +1,64 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { authAPI } from '../api';
 
-const NotificationPreferencesForm = ({ setError, setSuccess, setLoading, loading }) => {
-  const { register, handleSubmit, setValue, reset } = useForm();
+const NotificationPreferencesForm = React.memo(({ setError, setSuccess, setLoading, loading, preferences, onPreferencesUpdated }) => {
+  const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        setLoading(true);
-        const res = await authAPI.getNotificationPreferences();
-        reset({
-          eventReminders: !!res.data.eventReminders,
-          newEvents: !!res.data.newEvents,
-          rsvpConfirmations: !!res.data.rsvpConfirmations,
-        });
-      } catch (err) {
-        setError('Failed to load notification preferences');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPreferences();
-    // eslint-disable-next-line
-  }, []);
+    if (preferences) {
+      reset({
+        eventReminders: !!preferences.eventReminders,
+        newEvents: !!preferences.newEvents,
+        rsvpConfirmations: !!preferences.rsvpConfirmations,
+      });
+    }
+  }, [preferences, reset]);
 
   const onSubmit = async (data) => {
     try {
       setError('');
       setSuccess('');
       setLoading(true);
-      await authAPI.updateNotificationPreferences({
-        eventReminders: !!data.eventReminders,
-        newEvents: !!data.newEvents,
-        rsvpConfirmations: !!data.rsvpConfirmations,
-      });
-      setSuccess('Notification preferences updated!');
+      const res = await fetch(
+        '/api/users/me/notifications',
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+          body: JSON.stringify({
+            eventReminders: !!data.eventReminders,
+            newEvents: !!data.newEvents,
+            rsvpConfirmations: !!data.rsvpConfirmations,
+          }),
+        }
+      );
+      if (res.ok) {
+        const updated = await res.json();
+        setSuccess('Notification preferences updated!');
+        if (onPreferencesUpdated) onPreferencesUpdated(updated);
+      } else {
+        setError('Failed to update notification preferences');
+      }
     } catch (err) {
       setError('Failed to update notification preferences');
     } finally {
       setLoading(false);
     }
   };
+
+  if (!preferences) {
+    return (
+      <div className="flex justify-center items-center min-h-[150px]">
+        <svg className="animate-spin h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        <span className="ml-3 text-blue-500">Loading preferences...</span>
+      </div>
+    );
+  }
 
   return (
     <form className="max-w-md mx-auto space-y-6" onSubmit={handleSubmit(onSubmit)}>
@@ -74,6 +91,6 @@ const NotificationPreferencesForm = ({ setError, setSuccess, setLoading, loading
       </div>
     </form>
   );
-};
+});
 
 export default NotificationPreferencesForm;

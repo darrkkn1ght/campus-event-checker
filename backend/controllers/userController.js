@@ -52,14 +52,21 @@ const changePassword = async (req, res) => {
 };
 
 const getNotificationPreferences = async (req, res) => {
+  const start = Date.now();
   try {
+    console.log('[NotificationPreferences] Start fetching for user:', req.user._id);
+    const dbStart = Date.now();
     const user = await User.findById(req.user._id).select('notificationPreferences');
+    const dbEnd = Date.now();
+    console.log(`[NotificationPreferences] DB query took ${dbEnd - dbStart}ms`);
     const prefs = user.notificationPreferences || {};
     res.json({
       eventReminders: typeof prefs.eventReminders === 'boolean' ? prefs.eventReminders : true,
       newEvents: typeof prefs.newEvents === 'boolean' ? prefs.newEvents : true,
       rsvpConfirmations: typeof prefs.rsvpConfirmations === 'boolean' ? prefs.rsvpConfirmations : true
     });
+    const end = Date.now();
+    console.log(`[NotificationPreferences] Total time: ${end - start}ms`);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Failed to fetch notification preferences' });
