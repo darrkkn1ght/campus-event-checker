@@ -60,7 +60,7 @@ const createEvent = async (req, res) => {
       return res.status(400).json({ message: 'Validation failed', errors: errors.array() });
     }
 
-    const { title, description, location, date, time, category } = req.body;
+    const { title, description, location, date, time, category, isPaid, price, image, ticketsAvailable } = req.body;
 
     const event = new Event({
       title,
@@ -69,6 +69,10 @@ const createEvent = async (req, res) => {
       date,
       time,
       category,
+      isPaid,
+      price,
+      image,
+      ticketsAvailable,
       createdBy: req.user._id
     });
 
