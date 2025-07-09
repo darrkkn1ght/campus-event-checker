@@ -27,6 +27,9 @@ const eventSchema = new mongoose.Schema({
     required: true,
     enum: ['Anime', 'Sports', 'Music', 'Academic', 'Religious', 'Social', 'Other']
   },
+  image: {
+    type: String
+  },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

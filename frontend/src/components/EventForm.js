@@ -10,13 +10,16 @@ const EventForm = ({ isEdit = false }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isPaid, setIsPaid] = useState(false);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
-    reset
+    reset,
+    getValues
   } = useForm();
 
   useEffect(() => {
@@ -24,6 +27,13 @@ const EventForm = ({ isEdit = false }) => {
       fetchEvent();
     }
   }, [isEdit, id]);
+
+  // Show preview if editing existing event with image
+  useEffect(() => {
+    if (isEdit) {
+      register('image');
+    }
+  }, [isEdit, register]);
 
   const fetchEvent = async () => {
     try {
@@ -43,6 +53,7 @@ const EventForm = ({ isEdit = false }) => {
       setValue('price', event.price || '');
       setValue('image', event.image || '');
       setValue('ticketsAvailable', event.ticketsAvailable || '');
+      setImagePreview(event.image || '');
     } catch (error) {
       setError('Failed to fetch event details');
     } finally {
@@ -71,6 +82,33 @@ const EventForm = ({ isEdit = false }) => {
       setError(error.response?.data?.message || 'Failed to save event');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploadingImage(true);
+    setError('');
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'campus-events-unsigned');
+    try {
+      const res = await fetch('https://api.cloudinary.com/v1_1/dc5f6k71z/image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setValue('image', data.secure_url);
+        setImagePreview(data.secure_url);
+      } else {
+        setError('Image upload failed. Please try again.');
+      }
+    } catch (err) {
+      setError('Image upload failed. Please try again.');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
@@ -283,15 +321,32 @@ const EventForm = ({ isEdit = false }) => {
               {errors.ticketsAvailable && <p className="mt-1 text-sm text-red-600">{errors.ticketsAvailable.message}</p>}
             </div>
             <div>
-              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">Event Image URL</label>
-              <div className="relative">
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">Event Image</label>
+              <div className="flex items-center gap-4">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100"
+                  disabled={uploadingImage}
+                />
+                {uploadingImage && <span className="text-blue-500 text-sm">Uploading...</span>}
+              </div>
+              {imagePreview || (typeof getValues === 'function' && getValues('image')) ? (
+                <img
+                  src={imagePreview || (typeof getValues === 'function' && getValues('image'))}
+                  alt="Event Preview"
+                  className="mt-2 rounded-lg shadow w-40 h-28 object-cover border"
+                />
+              ) : null}
+              <div className="relative mt-2">
                 <PhotoIcon className="absolute left-3 top-2.5 h-5 w-5 text-pink-300" />
                 <input
                   type="text"
                   id="image"
                   {...register('image')}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-400 focus:border-pink-400"
-                  placeholder="https://..."
+                  placeholder="https://... (or upload above)"
                 />
               </div>
             </div>
