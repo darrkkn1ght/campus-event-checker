@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { eventAPI } from '../api';
-import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, PencilSquareIcon, SparklesIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, ClockIcon, MapPinIcon, TagIcon, PencilSquareIcon, SparklesIcon, ArrowLeftIcon, CurrencyDollarIcon, PhotoIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 const EventForm = ({ isEdit = false }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isPaid, setIsPaid] = useState(false);
 
   const {
     register,
@@ -38,6 +39,10 @@ const EventForm = ({ isEdit = false }) => {
       setValue('date', formattedDate);
       setValue('time', event.time);
       setValue('category', event.category);
+      setIsPaid(event.isPaid || false);
+      setValue('price', event.price || '');
+      setValue('image', event.image || '');
+      setValue('ticketsAvailable', event.ticketsAvailable || '');
     } catch (error) {
       setError('Failed to fetch event details');
     } finally {
@@ -49,10 +54,17 @@ const EventForm = ({ isEdit = false }) => {
     try {
       setLoading(true);
       setError('');
+      const eventData = {
+        ...data,
+        isPaid,
+        price: isPaid ? Number(data.price) : 0,
+        image: data.image,
+        ticketsAvailable: data.ticketsAvailable ? Number(data.ticketsAvailable) : null,
+      };
       if (isEdit) {
-        await eventAPI.updateEvent(id, data);
+        await eventAPI.updateEvent(id, eventData);
       } else {
-        await eventAPI.createEvent(data);
+        await eventAPI.createEvent(eventData);
       }
       navigate('/dashboard');
     } catch (error) {
@@ -224,6 +236,63 @@ const EventForm = ({ isEdit = false }) => {
                 {errors.category && (
                   <p className="mt-1 text-sm text-red-600">{errors.category.message}</p>
                 )}
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPaid}
+                  onChange={e => setIsPaid(e.target.checked)}
+                  className="form-checkbox h-5 w-5 text-blue-600"
+                />
+                <span className="text-sm font-medium text-gray-700">Paid Event?</span>
+              </label>
+              {isPaid && (
+                <div className="flex-1">
+                  <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">Ticket Price (₦)</label>
+                  <div className="relative">
+                    <CurrencyDollarIcon className="absolute left-3 top-2.5 h-5 w-5 text-green-400" />
+                    <input
+                      type="number"
+                      id="price"
+                      {...register('price', {
+                        required: isPaid ? 'Price is required for paid events' : false,
+                        min: { value: 0, message: 'Price must be at least 0' }
+                      })}
+                      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-400 focus:border-green-400"
+                      placeholder="Enter ticket price"
+                    />
+                  </div>
+                  {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price.message}</p>}
+                </div>
+              )}
+            </div>
+            <div>
+              <label htmlFor="ticketsAvailable" className="block text-sm font-medium text-gray-700 mb-2">Number of Tickets Available</label>
+              <div className="relative">
+                <UsersIcon className="absolute left-3 top-2.5 h-5 w-5 text-blue-300" />
+                <input
+                  type="number"
+                  id="ticketsAvailable"
+                  {...register('ticketsAvailable', { min: { value: 1, message: 'Must be at least 1' } })}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-400 focus:border-blue-400"
+                  placeholder="e.g., 100"
+                />
+              </div>
+              {errors.ticketsAvailable && <p className="mt-1 text-sm text-red-600">{errors.ticketsAvailable.message}</p>}
+            </div>
+            <div>
+              <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">Event Image URL</label>
+              <div className="relative">
+                <PhotoIcon className="absolute left-3 top-2.5 h-5 w-5 text-pink-300" />
+                <input
+                  type="text"
+                  id="image"
+                  {...register('image')}
+                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-pink-400 focus:border-pink-400"
+                  placeholder="https://..."
+                />
               </div>
             </div>
             <div className="flex items-center justify-end space-x-4 pt-6">

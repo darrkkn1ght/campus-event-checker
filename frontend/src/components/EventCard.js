@@ -30,6 +30,15 @@ const EventCard = ({ event }) => {
     <div className="relative group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-blue-50 hover:scale-[1.025]">
       {/* Gradient Accent Bar */}
       <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 via-pink-400 to-yellow-300" />
+      {/* Event Image */}
+      <div className="w-full h-40 bg-gray-100 overflow-hidden flex items-center justify-center">
+        <img
+          src={event.image || `https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=600&q=80`}
+          alt={event.title + ' event banner'}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
       <div className="p-6 flex flex-col h-full">
         <div className="flex items-start justify-between mb-3">
           <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-200">
