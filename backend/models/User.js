@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema({
     eventsPublic: { type: Boolean, default: true },
     hideEmail: { type: Boolean, default: false },
     hideAvatar: { type: Boolean, default: false }
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
   }
 });
 

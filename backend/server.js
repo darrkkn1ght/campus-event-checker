@@ -1,4 +1,3 @@
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,6 +9,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const eventRoutes = require('./routes/events');
+const adminRoutes = require('./routes/admin');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -30,6 +30,8 @@ app.use(cors({
   ],
   credentials: true
 }));
+// Raw body parser for Paystack webhook
+app.use('/api/events/paystack/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(session({
   secret: process.env.JWT_SECRET || 'your_secret_key',
@@ -44,12 +46,13 @@ app.use(passport.session());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     seedDatabase();

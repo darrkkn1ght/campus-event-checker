@@ -32,10 +32,31 @@ const eventSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  isPaid: {
+    type: Boolean,
+    default: false
+  },
+  price: {
+    type: Number,
+    required: function() { return this.isPaid; },
+    min: 0
+  },
+  ticketsAvailable: {
+    type: Number,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  cancelled: {
+    type: Boolean,
+    default: false
+  },
+  waitlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 });
 
 module.exports = mongoose.model('Event', eventSchema);

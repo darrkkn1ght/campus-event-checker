@@ -1,23 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI, eventAPI } from '../api';
-import { UserCircleIcon, EnvelopeIcon, CalendarDaysIcon, PlusCircleIcon, ArrowRightCircleIcon, SparklesIcon, ClockIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import EventCard from '../components/EventCard';
-
-const getGreeting = (name) => {
-  const hour = new Date().getHours();
-  let greeting = 'Hello';
-  if (hour < 12) greeting = 'Good morning';
-  else if (hour < 18) greeting = 'Good afternoon';
-  else greeting = 'Good evening';
-  return `${greeting}, ${name}!`;
-};
+import { UserCircleIcon, EnvelopeIcon, CalendarDaysIcon, PlusCircleIcon, ArrowRightCircleIcon, SparklesIcon, ClockIcon, CheckCircleIcon, ExclamationCircleIcon, UsersIcon, ChartBarIcon, PencilSquareIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -48,11 +39,17 @@ const Dashboard = () => {
     fetchUserEvents();
   }, [user]);
 
-  // Stats
-  const now = new Date();
-  const totalEvents = events.length;
-  const upcomingEvents = events.filter(e => new Date(e.date) >= now).length;
-  const pastEvents = events.filter(e => new Date(e.date) < now).length;
+  const handleCancelEvent = async (eventId) => {
+    if (!window.confirm('Are you sure you want to cancel this event? This will notify all attendees and refund paid tickets.')) return;
+    setActionMessage('');
+    try {
+      const response = await eventAPI.cancelEvent(eventId);
+      setActionMessage(response.data.message || 'Event cancelled.');
+      setEvents(events.map(e => e._id === eventId ? { ...e, cancelled: true } : e));
+    } catch (err) {
+      setActionMessage(err.response?.data?.message || 'Failed to cancel event.');
+    }
+  };
 
   if (loading) {
     return (
@@ -83,7 +80,7 @@ const Dashboard = () => {
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <SparklesIcon className="h-8 w-8 text-pink-400" />
-            <h1 className="text-3xl font-extrabold text-gray-900">{getGreeting(user.name)}</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900">Welcome, {user?.name}!</h1>
           </div>
           <button
             onClick={() => navigate('/create-event')}
@@ -92,53 +89,10 @@ const Dashboard = () => {
             <PlusCircleIcon className="h-5 w-5" /> Create New Event
           </button>
         </div>
-        {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col sm:flex-row items-center gap-6 mb-10">
-          <img
-            src={user.avatarUrl || `https://ui-avatars.com/api/?name=${user.name}`}
-            alt={user.name}
-            className="h-20 w-20 rounded-full border-2 border-blue-200 object-cover shadow"
-          />
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <UserCircleIcon className="h-6 w-6 text-blue-400" />
-              <span className="font-bold text-lg text-gray-900">{user.name}</span>
-            </div>
-            <div className="flex items-center gap-2 mb-1">
-              <EnvelopeIcon className="h-5 w-5 text-pink-400" />
-              <span className="text-gray-700">{user.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarDaysIcon className="h-5 w-5 text-yellow-400" />
-              <span className="text-gray-500 text-sm">Joined {new Date(user.createdAt).toLocaleDateString()}</span>
-            </div>
-          </div>
-        </div>
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-          <div className="bg-blue-50 rounded-xl p-6 flex flex-col items-center shadow">
-            <span className="text-3xl font-extrabold text-blue-600">{totalEvents}</span>
-            <span className="mt-2 text-gray-700 font-medium flex items-center gap-1">
-              <CalendarDaysIcon className="h-5 w-5 text-blue-400" /> Total Events
-            </span>
-          </div>
-          <div className="bg-pink-50 rounded-xl p-6 flex flex-col items-center shadow">
-            <span className="text-3xl font-extrabold text-pink-500">{upcomingEvents}</span>
-            <span className="mt-2 text-gray-700 font-medium flex items-center gap-1">
-              <ClockIcon className="h-5 w-5 text-pink-400" /> Upcoming
-            </span>
-          </div>
-          <div className="bg-yellow-50 rounded-xl p-6 flex flex-col items-center shadow">
-            <span className="text-3xl font-extrabold text-yellow-500">{pastEvents}</span>
-            <span className="mt-2 text-gray-700 font-medium flex items-center gap-1">
-              <CheckCircleIcon className="h-5 w-5 text-yellow-400" /> Past
-            </span>
-          </div>
-        </div>
-        {/* User's Events */}
+        {/* Organizer's Events */}
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <CalendarDaysIcon className="h-6 w-6 text-blue-400" /> Your Events
+            <CalendarDaysIcon className="h-6 w-6 text-blue-400" /> My Events
           </h2>
           {events.length === 0 ? (
             <div className="text-center py-12">
@@ -147,13 +101,28 @@ const Dashboard = () => {
               <p className="text-gray-600">Create your first event to get started!</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {events.map(event => (
-                <EventCard key={event._id} event={event} />
+                <div key={event._id} className="bg-white rounded-xl shadow p-6 flex flex-col gap-3 border border-blue-50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-lg text-blue-700">{event.title}</span>
+                    {event.cancelled && <span className="ml-2 px-2 py-1 bg-red-100 text-red-600 rounded text-xs">Cancelled</span>}
+                  </div>
+                  <div className="text-gray-600 text-sm mb-1">{new Date(event.date).toLocaleString()} @ {event.location}</div>
+                  <div className="text-xs text-gray-500 mb-1">Category: {event.category}</div>
+                  <div className="text-xs text-gray-500 mb-1">{event.isPaid ? `₦${event.price}` : 'Free'} | {typeof event.remainingTickets === 'number' ? (event.remainingTickets === 0 ? 'Full' : `${event.remainingTickets} left`) : ''}</div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <Link to={`/events/${event._id}/attendees`} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-blue-100 text-blue-700 font-medium text-xs hover:bg-blue-200 transition"><UsersIcon className="h-4 w-4" /> Attendees</Link>
+                    <Link to={`/events/${event._id}/analytics`} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-green-100 text-green-700 font-medium text-xs hover:bg-green-200 transition"><ChartBarIcon className="h-4 w-4" /> Analytics</Link>
+                    <Link to={`/edit-event/${event._id}`} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-yellow-100 text-yellow-700 font-medium text-xs hover:bg-yellow-200 transition"><PencilSquareIcon className="h-4 w-4" /> Edit</Link>
+                    {!event.cancelled && <button onClick={() => handleCancelEvent(event._id)} className="inline-flex items-center gap-1 px-3 py-1 rounded bg-red-100 text-red-700 font-medium text-xs hover:bg-red-200 transition"><TrashIcon className="h-4 w-4" /> Cancel</button>}
+                  </div>
+                </div>
               ))}
             </div>
           )}
         </div>
+        {actionMessage && <div className="my-4 text-center text-blue-700 font-semibold">{actionMessage}</div>}
       </div>
     </div>
   );

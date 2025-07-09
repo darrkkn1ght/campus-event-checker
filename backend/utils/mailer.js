@@ -1,22 +1,23 @@
 const nodemailer = require('nodemailer');
 
-// Configure your SMTP settings here
+// Configure SendGrid SMTP settings from .env
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  port: process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT) : 587,
+  host: process.env.EMAIL_HOST || 'smtp.sendgrid.net',
+  port: process.env.EMAIL_PORT ? parseInt(process.env.EMAIL_PORT) : 587,
   auth: {
-    user: process.env.SMTP_USER || 'your_ethereal_user',
-    pass: process.env.SMTP_PASS || 'your_ethereal_pass',
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
-async function sendMail({ to, subject, text, html }) {
+async function sendMail({ to, subject, text, html, attachments }) {
   const mailOptions = {
-    from: process.env.SMTP_FROM || 'no-reply@campus-event-checker.com',
+    from: process.env.EMAIL_FROM || 'no-reply@campus-event-checker.com',
     to,
     subject,
     text,
     html,
+    attachments,
   };
   return transporter.sendMail(mailOptions);
 }

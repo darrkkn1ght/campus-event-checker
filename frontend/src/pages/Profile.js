@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { authAPI } from '../api';
 import {
@@ -23,8 +23,8 @@ const SETTINGS_TABS = [
 
 const Profile = () => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState('profile');
@@ -260,7 +260,6 @@ const Profile = () => {
       fetchProfile();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update profile');
-    } finally {
       setLoading(false);
     }
   };

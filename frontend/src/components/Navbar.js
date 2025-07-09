@@ -77,6 +77,16 @@ const Navbar = () => {
                 <PlusCircleIcon className="h-5 w-5" /> Create Event
               </Link>
             )}
+            {user && (
+              <Link
+                to="/tickets"
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                  isActive('/tickets') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+              >
+                🎟️ My Tickets
+              </Link>
+            )}
             {!user && (
               <Link
                 to="/login"
@@ -214,6 +224,17 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
               >
                 <PlusCircleIcon className="h-5 w-5" /> Create Event
+              </Link>
+            )}
+            {user && (
+              <Link
+                to="/tickets"
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-base font-medium transition-colors duration-150 ${
+                  isActive('/tickets') ? 'text-blue-600 bg-blue-100' : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50'
+                }`}
+                onClick={() => setIsOpen(false)}
+              >
+                🎟️ My Tickets
               </Link>
             )}
             {!user && (
